@@ -1,0 +1,30 @@
+{
+    "name": "caferrari/caf-common",
+    "description": "A generic collection of classes to make zf2 projects easier",
+    "type": "library",
+    "keywords": [
+        "zf2", "crud"
+    ],
+    "homepage": "https://github.com/caferrari/CafCommon",
+    "authors": [
+        {
+            "name": "Carlos André Ferrari",
+            "email": "caferrari@gmail.com",
+            "homepage": "http://ferrari.eti.br/"
+        }
+    ],
+    "require": {
+        "php": ">=5.4",
+        "zendframework/zend-http": ">2.1",
+        "zendframework/zend-mvc": ">2.1",
+        "zendframework/zend-view": ">2.1",
+        "zendframework/zend-config": ">2.1",
+        "zendframework/zend-cache": ">2.1",
+        "zendframework/zend-i18n": ">2.1"
+    },
+    "autoload": {
+        "psr-0": {
+            "CafCommon\\": "src/"
+        }
+    }
+}
