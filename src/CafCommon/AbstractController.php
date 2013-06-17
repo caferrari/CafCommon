@@ -1,6 +1,6 @@
 <?php
 
-namespace Common;
+namespace CafCommon;
 
 use Zend\Mvc\Controller\AbstractActionController,
     Zend\Paginator\Paginator,
