@@ -17,8 +17,10 @@ class AbstractService
     public function insert(array $data)
     {
         $entity = $this->createEntity($data);
+
         $this->em->persist($entity);
         $this->em->flush();
+
         return $entity;
     }
 

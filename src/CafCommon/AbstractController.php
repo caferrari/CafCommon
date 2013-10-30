@@ -3,8 +3,6 @@
 namespace CafCommon;
 
 use Zend\Mvc\Controller\AbstractActionController,
-    Zend\Paginator\Paginator,
-    Zend\Paginator\Adapter\ArrayAdapter,
     Zend\View\Model\ViewModel,
     Zend\ServiceManager\Exception\ServiceNotFoundException;
 
@@ -33,92 +31,24 @@ abstract class AbstractController extends AbstractActionController
 
     public function __construct()
     {
+        $this->loadClassNames();
+    }
+
+    public function loadClassNames()
+    {
+
         $class = get_called_class();
-        $this->service = str_replace('\Controller\\', '\Repository\\', $class);
+
+        $parts = explode('\\', strtolower(get_called_class()));
+        unset($parts[1]);
+        $service = implode('.', $parts);
+
+        $this->service = $service;
+        $this->repository = str_replace('\Controller\\', '\Repository\\', $class);
         $this->entity = str_replace('\Controller\\', '\Entity\\', $class);
         $this->form = str_replace('\Controller\\', '\Form\\', $class);
         $this->controller = trim(strtolower(preg_replace('@([A-Z])@', "-$1", explode('\\', $class)[2])), '-');
-    }
 
-    public function indexAction()
-    {
-        $dados = $this->getRepository()->findAll();
-
-        $page = (int)$this->getRequest()->getQuery('page', '1');
-
-        $paginator = new Paginator(new ArrayAdapter($dados));
-        $paginator->setCurrentPageNumber($page);
-        $paginator->setDefaultItemCountPerPage(20);
-        return array('data' => $paginator, 'page' => $page);
-    }
-
-    public function novoAction()
-    {
-        $form = $this->getForm();
-        $request = $this->getRequest();
-        if ($request->isPost()) {
-            $form->setData($request->getPost());
-
-            try {
-                $form->validate();
-                $this->getService()->insert($form->getData());
-                $this->success($this->getMessage('insert', 'success'));
-                $this->redirect()->toRoute('crud', array('controller' => $this->controller));
-            } catch(\Doctrine\DBAL\DBALException $e) {
-                $pdoe = $e->getPrevious();
-                if (23505 == $pdoe->getCode()) {
-                    $this->error($this->getMessage('unique', 'error'));
-                }
-            } catch (\Exception $e) {
-                $this->error($e->getMessage());
-            }
-        }
-
-        return array('form' => $form);
-    }
-
-    public function editarAction()
-    {
-
-        $form = $this->getForm();
-        $request = $this->getRequest();
-
-        if ($request->isPost()) {
-            $form->setData($request->getPost());
-            try {
-                $form->validate();
-                $this->getService()->update($form->getData());
-                $this->success($this->getMessage('edit', 'success'));
-                return $this->redirect()->toRoute('crud', array('controller' => $this->controller));
-            } catch (\Exception $e) {
-                $this->error($e->getMessage());
-            }
-        }
-
-        $id = $this->getRequest()->getQuery('id', false);
-        if (is_numeric($id)) {
-            $entity = $this->getRepository()->find($id);
-            $this->form = $form->setData($entity->toArray());
-
-            $children = $this->layout()->getChildren();
-            return $this->render($this->editView);
-        }
-
-        $this->error('id must be numeric');
-        return $this->redirect()->toRoute('crud', array('controller' => $this->controller));
-    }
-
-    public function excluirAction()
-    {
-        $id = $this->getRequest()->getQuery('id', false);
-        if (is_numeric($id)) {
-            $this->getService()->delete($id);
-            $this->success($this->getMessage('delete', 'success'));
-        } else {
-            $this->success($this->getMessage('delete', 'error'));
-        }
-
-        return $this->redirect()->toRoute('crud', array('controller' => $this->controller));
     }
 
     protected function getRepository($entity = null)
@@ -134,10 +64,9 @@ abstract class AbstractController extends AbstractActionController
 
     protected function getService($service = false)
     {
+
         if (false === $service) {
-            $parts = explode('\\', strtolower(get_called_class()));
-            unset($parts[1]);
-            $service = implode('.', $parts);
+            $service = $this->service;
         }
 
         return $this->getServiceLocator()->get($service);
@@ -148,7 +77,8 @@ abstract class AbstractController extends AbstractActionController
         try {
             return $this->getService($this->form);
         } catch (ServiceNotFoundException $e) {
-            return new $this->form();
+            $di = new \Zend\Di\Di;
+            return $di->get($this->form);
         }
     }
 

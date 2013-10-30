@@ -26,10 +26,12 @@ class BootstrapRow extends FormRow
     public function __toString()
     {
 
+
+
+
         $element = $this->element;
 
         $elementErrorsHelper = $this->getElementErrorsHelper();
-
 
         $inputErrorClass = $this->getInputErrorClass();
         $elementErrors   = $elementErrorsHelper->render($element);
@@ -78,11 +80,12 @@ EOD;
         $markup = str_replace('%help', $elementErrors, $markup);
 
         return $markup;
+
     }
 
     public function renderLabel()
     {
-        $escapeHtmlHelper    = $this->getEscapeHtmlHelper();
+        $escapeHtmlHelper = $this->getEscapeHtmlHelper();
         $label  = $this->element->getLabel();
         if (null !== ($translator = $this->getTranslator())) {
             $label = $translator->translate(

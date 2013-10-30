@@ -5,7 +5,7 @@ namespace CafCommon;
 abstract class AbstractEntity
 {
 
-    use \CafCommon\GetInputFilter;
+    protected $inputFilter;
 
     public function __construct(array $data = null)
     {
@@ -56,6 +56,36 @@ abstract class AbstractEntity
         $inputFilter = $this->getInputFilter();
         $inputFilter->setData($this->toArray());
         return $inputFilter->isValid();
+    }
+
+    public function validate()
+    {
+        if (!$this->isValid()) {
+            throw new \RunTimeException($this->getExceptionMessage());
+        }
+
+        return true;
+    }
+
+    public function getInputFilter()
+    {
+        if (null == $this->inputFilter) {
+            $filter = $this->getInputFilterClassName();
+            if (!class_exists($filter)) {
+                throw new RuntimeException("Filter \"{$filter}\" not found");
+            }
+            $this->inputFilter = new $filter();
+        }
+        return $this->inputFilter;
+    }
+
+    private function getInputFilterClassName()
+    {
+        $class = get_called_class();
+        $class = str_replace('DoctrineORMModule\\Proxy\\__CG__\\', '', $class);
+        $classParts = explode('\\', $class);
+        $classParts[1] = 'Filter';
+        return implode('\\', $classParts);
     }
 
     public function __toString()
